@@ -20,7 +20,9 @@ _current_context: ContextVar[RuntimeInvocationContext | None] = ContextVar(
 
 def set_runtime_context(actor_id: str, session_id: str) -> None:
     """Store the invocation-scoped identifiers for downstream tool access."""
-    _current_context.set(RuntimeInvocationContext(actor_id=actor_id, session_id=session_id))
+    _current_context.set(
+        RuntimeInvocationContext(actor_id=actor_id, session_id=session_id)
+    )
 
 
 def get_runtime_context() -> RuntimeInvocationContext:

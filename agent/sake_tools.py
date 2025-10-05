@@ -35,7 +35,9 @@ def _resolve_identity(
     """Resolve actor/session identifiers from the invocation context."""
 
     runtime_context = get_runtime_context()
-    resolved_actor = actor_id or os.getenv("SAKE_AGENT_ACTOR_ID") or runtime_context.actor_id
+    resolved_actor = (
+        actor_id or os.getenv("SAKE_AGENT_ACTOR_ID") or runtime_context.actor_id
+    )
     resolved_session = (
         session_id or os.getenv("SAKE_AGENT_SESSION_ID") or runtime_context.session_id
     )
@@ -88,13 +90,15 @@ def search_sake(
         retrieve_params = {
             "knowledgeBaseId": kb_id,
             "retrievalQuery": {"text": query_text},
-            "retrievalConfiguration": {"vectorSearchConfiguration": {"numberOfResults": 5}},
+            "retrievalConfiguration": {
+                "vectorSearchConfiguration": {"numberOfResults": 5}
+            },
         }
 
         if filters:
-            retrieve_params["retrievalConfiguration"]["vectorSearchConfiguration"]["filter"] = {
-                "andAll": filters
-            }
+            retrieve_params["retrievalConfiguration"]["vectorSearchConfiguration"][
+                "filter"
+            ] = {"andAll": filters}
 
         response = bedrock_agent_runtime.retrieve(**retrieve_params)
 
@@ -130,7 +134,9 @@ def semantic_search(query: str) -> str:
         response = bedrock_agent_runtime.retrieve(
             knowledgeBaseId=kb_id,
             retrievalQuery={"text": query},
-            retrievalConfiguration={"vectorSearchConfiguration": {"numberOfResults": 5}},
+            retrievalConfiguration={
+                "vectorSearchConfiguration": {"numberOfResults": 5}
+            },
         )
 
         # 結果の整形
@@ -159,13 +165,16 @@ def recommend_sake(preferences: str | None = None) -> str:
     try:
         # まず、Memoryからユーザーの過去の好みを検索
         memory_results = search_user_preferences("日本酒の好み 推薦")
-        memory_error = memory_results.startswith("エラー:") or memory_results.startswith(
-            "Memory検索エラー"
-        )
+        memory_error = memory_results.startswith(
+            "エラー:"
+        ) or memory_results.startswith("Memory検索エラー")
 
         # 好みの情報を統合
         query_text = ""
-        if not memory_error and "過去の好み情報は見つかりませんでした" not in memory_results:
+        if (
+            not memory_error
+            and "過去の好み情報は見つかりませんでした" not in memory_results
+        ):
             query_text += f"過去の好み: {memory_results}\n"
 
         if preferences:
@@ -182,7 +191,9 @@ def recommend_sake(preferences: str | None = None) -> str:
         response = bedrock_agent_runtime.retrieve(
             knowledgeBaseId=kb_id,
             retrievalQuery={"text": query_text},
-            retrievalConfiguration={"vectorSearchConfiguration": {"numberOfResults": 3}},
+            retrievalConfiguration={
+                "vectorSearchConfiguration": {"numberOfResults": 3}
+            },
         )
 
         # 結果の整形
@@ -203,9 +214,7 @@ def recommend_sake(preferences: str | None = None) -> str:
             and "過去の好み情報は見つかりませんでした" not in memory_results
             and memory_results.strip()
         ):
-            recommendation = (
-                f"【過去の好み情報】\n{memory_results}\n\n【推薦結果】\n{recommendation}"
-            )
+            recommendation = f"【過去の好み情報】\n{memory_results}\n\n【推薦結果】\n{recommendation}"
 
         return recommendation
 
@@ -232,7 +241,9 @@ def pairing_recommendation(dish: str) -> str:
         response = bedrock_agent_runtime.retrieve(
             knowledgeBaseId=kb_id,
             retrievalQuery={"text": query_text},
-            retrievalConfiguration={"vectorSearchConfiguration": {"numberOfResults": 5}},
+            retrievalConfiguration={
+                "vectorSearchConfiguration": {"numberOfResults": 5}
+            },
         )
 
         # 結果の整形
@@ -270,7 +281,9 @@ def get_sake_details(sake_name: str) -> str:
         response = bedrock_agent_runtime.retrieve(
             knowledgeBaseId=kb_id,
             retrievalQuery={"text": sake_name},
-            retrievalConfiguration={"vectorSearchConfiguration": {"numberOfResults": 1}},
+            retrievalConfiguration={
+                "vectorSearchConfiguration": {"numberOfResults": 1}
+            },
         )
 
         # 結果の取得
@@ -363,12 +376,14 @@ def search_user_preferences(
                 sections.extend(extracted[:top_k])
 
         _collect_from_namespace(
-            namespace=f"/users/{resolved_actor_id}/preferences", label="【ユーザー嗜好】"
+            namespace=f"/users/{resolved_actor_id}/preferences",
+            label="【ユーザー嗜好】",
         )
 
         if include_semantic:
             _collect_from_namespace(
-                namespace=f"/users/{resolved_actor_id}/facts", label="【セマンティック事実】"
+                namespace=f"/users/{resolved_actor_id}/facts",
+                label="【セマンティック事実】",
             )
 
         if include_short_term:
@@ -460,7 +475,9 @@ def fetch_sake_price(sake_name: str, screenshot_path: str | None = None) -> str:
                     # Amazon.co.jpで検索（言語パラメータを明示）
                     search_query = f"{sake_name} 日本酒"
                     encoded_query = quote_plus(search_query)
-                    amazon_url = f"https://www.amazon.co.jp/s?k={encoded_query}&language=ja_JP"
+                    amazon_url = (
+                        f"https://www.amazon.co.jp/s?k={encoded_query}&language=ja_JP"
+                    )
 
                     page.goto(amazon_url, wait_until="load", timeout=30000)
                     page.wait_for_timeout(3000)
@@ -473,7 +490,9 @@ def fetch_sake_price(sake_name: str, screenshot_path: str | None = None) -> str:
                     price_results = []
 
                     # 商品アイテムを取得（最大5件）
-                    items = page.query_selector_all('[data-component-type="s-search-result"]')[:5]
+                    items = page.query_selector_all(
+                        '[data-component-type="s-search-result"]'
+                    )[:5]
 
                     for idx, item in enumerate(items):
                         try:
@@ -530,7 +549,9 @@ def fetch_sake_price(sake_name: str, screenshot_path: str | None = None) -> str:
                                         url = f"https://www.amazon.co.jp/{href}"
 
                             if title != "不明":
-                                price_results.append({"title": title, "price": price, "url": url})
+                                price_results.append(
+                                    {"title": title, "price": price, "url": url}
+                                )
                         except Exception:
                             continue
 

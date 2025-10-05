@@ -13,14 +13,19 @@ try:  # pragma: no cover - exercised in integration tests
     from bedrock_agentcore.runtime import BedrockAgentCoreApp
     from bedrock_agentcore.runtime.context import BedrockAgentCoreContext
     from bedrock_agentcore.runtime.models import CUSTOM_HEADER_PREFIX
-except (ModuleNotFoundError, ImportError):  # pragma: no cover - lightweight fallback for unit tests
+except (
+    ModuleNotFoundError,
+    ImportError,
+):  # pragma: no cover - lightweight fallback for unit tests
 
     class BedrockAgentCoreApp:  # type: ignore[misc]
         def entrypoint(self, func):
             return func
 
         def run(self, *_args, **_kwargs):
-            raise RuntimeError("BedrockAgentCoreApp is unavailable in the test environment")
+            raise RuntimeError(
+                "BedrockAgentCoreApp is unavailable in the test environment"
+            )
 
     class BedrockAgentCoreContext:  # type: ignore[misc]
         @classmethod
@@ -187,7 +192,9 @@ DEFAULT_SYSTEM_PROMPT = """# Sake-Sensei (酒先生) システムプロンプト
 CUSTOM_ACTOR_HEADER = f"{CUSTOM_HEADER_PREFIX}Actor-Id"
 
 
-def _build_memory_config(memory_id: str, actor_id: str, session_id: str) -> AgentCoreMemoryConfig:
+def _build_memory_config(
+    memory_id: str, actor_id: str, session_id: str
+) -> AgentCoreMemoryConfig:
     retrieval_config = {
         f"/users/{actor_id}/preferences": RetrievalConfig(top_k=5, relevance_score=0.5),
         f"/users/{actor_id}/facts": RetrievalConfig(top_k=5, relevance_score=0.5),
@@ -311,7 +318,11 @@ def save_conversation_to_memory(
 
     if assistant_message:
         session.add_turns(
-            messages=[ConversationalMessage(text=assistant_message, role=MessageRole.ASSISTANT)]
+            messages=[
+                ConversationalMessage(
+                    text=assistant_message, role=MessageRole.ASSISTANT
+                )
+            ]
         )
 
 
@@ -498,21 +509,30 @@ def main() -> None:
                 print("Sake-Sensei > またお話ししましょう！")
                 break
 
-            memory_session.add_turns(messages=[ConversationalMessage(user_input, MessageRole.USER)])
+            memory_session.add_turns(
+                messages=[ConversationalMessage(user_input, MessageRole.USER)]
+            )
 
             agent_result = agent_instance(user_input)
             formatted = _format_response(agent_result)
-            reply = formatted.get("message", "") or "申し訳ありません、応答を生成できませんでした。"
+            reply = (
+                formatted.get("message", "")
+                or "申し訳ありません、応答を生成できませんでした。"
+            )
 
             print(f"Sake-Sensei > {reply}")
 
-            memory_session.add_turns(messages=[ConversationalMessage(reply, MessageRole.ASSISTANT)])
+            memory_session.add_turns(
+                messages=[ConversationalMessage(reply, MessageRole.ASSISTANT)]
+            )
     finally:
         clear_runtime_context()
 
 
 @app.entrypoint
-async def invoke(payload: dict[str, Any], context: Any) -> AsyncIterator[dict[str, Any]]:
+async def invoke(
+    payload: dict[str, Any], context: Any
+) -> AsyncIterator[dict[str, Any]]:
     prompt = _extract_prompt(payload)
     if not prompt:
         yield {"type": "error", "error": "A non-empty 'prompt' field is required."}
