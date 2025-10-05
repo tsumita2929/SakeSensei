@@ -555,39 +555,12 @@ resource "aws_iam_role_policy" "ecs_task_app_permissions" {
       {
         Effect = "Allow"
         Action = [
-          "dynamodb:GetItem",
-          "dynamodb:PutItem",
-          "dynamodb:UpdateItem",
-          "dynamodb:DeleteItem",
-          "dynamodb:Query",
-          "dynamodb:Scan"
-        ]
-        Resource = [
-          "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/${var.dynamodb_users_table}",
-          "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/${var.dynamodb_sake_table}",
-          "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/${var.dynamodb_brewery_table}",
-          "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/${var.dynamodb_tasting_table}",
-          "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/SakeSensei-ConversationMemory"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject"
         ]
         Resource = [
           "arn:aws:s3:::sakesensei-images-*/*"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "lambda:InvokeFunction"
-        ]
-        Resource = [
-          "arn:aws:lambda:${var.aws_region}:${var.aws_account_id}:function:SakeSensei-*"
         ]
       },
       {
@@ -675,15 +648,6 @@ resource "aws_ecs_task_definition" "app" {
       { name = "AGENTCORE_RUNTIME_ARN", value = var.agentcore_runtime_arn },
       { name = "AGENTCORE_AGENT_ID", value = var.agentcore_agent_id },
       { name = "AGENTCORE_AGENT_ALIAS_ID", value = var.agentcore_agent_alias_id },
-      { name = "DYNAMODB_USERS_TABLE", value = var.dynamodb_users_table },
-      { name = "DYNAMODB_SAKE_TABLE", value = var.dynamodb_sake_table },
-      { name = "DYNAMODB_BREWERY_TABLE", value = var.dynamodb_brewery_table },
-      { name = "DYNAMODB_TASTING_TABLE", value = var.dynamodb_tasting_table },
-      { name = "LAMBDA_RECOMMENDATION_URL", value = var.lambda_recommendation_url },
-      { name = "LAMBDA_PREFERENCE_URL", value = var.lambda_preference_url },
-      { name = "LAMBDA_TASTING_URL", value = var.lambda_tasting_url },
-      { name = "LAMBDA_BREWERY_URL", value = var.lambda_brewery_url },
-      { name = "LAMBDA_IMAGERECOGNITION_URL", value = var.lambda_imagerecognition_url },
       { name = "APP_ENV", value = var.environment },
       { name = "STREAMLIT_SERVER_PORT", value = tostring(var.container_port) },
       { name = "STREAMLIT_SERVER_ADDRESS", value = "0.0.0.0" }

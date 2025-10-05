@@ -36,7 +36,7 @@ ECS Fargate + Cognito を使用した Streamlit アプリケーションのイ�
 
 #### IAM
 - ECS Task Execution Role
-- ECS Task Role (Cognito, DynamoDB, Lambda, Bedrock へのアクセス権限)
+- ECS Task Role (Cognito, Bedrock へのアクセス権限)
 
 #### 監視
 - CloudWatch Logs (/ecs/sakesensei-dev)
@@ -173,7 +173,6 @@ terraform {
     key            = "dev/terraform.tfstate"
     region         = "us-west-2"
     encrypt        = true
-    dynamodb_table = "sakesensei-terraform-locks"
   }
 }
 ```

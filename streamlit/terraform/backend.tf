@@ -13,16 +13,11 @@
 # }
 
 # Option 2: S3 Backend (recommended for production)
-# State files are stored in S3 with DynamoDB locking
+# State files are stored in S3
 # Uncomment and configure this block for team environments
 
 # Prerequisites:
 # 1. Create S3 bucket: aws s3 mb s3://sakesensei-terraform-state
-# 2. Create DynamoDB table: aws dynamodb create-table \
-#    --table-name sakesensei-terraform-locks \
-#    --attribute-definitions AttributeName=LockID,AttributeType=S \
-#    --key-schema AttributeName=LockID,KeyType=HASH \
-#    --billing-mode PAY_PER_REQUEST
 
 # terraform {
 #   backend "s3" {
@@ -30,7 +25,6 @@
 #     key            = "dev/terraform.tfstate"
 #     region         = "us-west-2"
 #     encrypt        = true
-#     dynamodb_table = "sakesensei-terraform-locks"
 #   }
 # }
 

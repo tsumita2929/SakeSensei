@@ -120,60 +120,6 @@ variable "agentcore_runtime_arn" {
   default     = ""
 }
 
-variable "dynamodb_users_table" {
-  description = "DynamoDB Users table name"
-  type        = string
-  default     = "SakeSensei-Users"
-}
-
-variable "dynamodb_sake_table" {
-  description = "DynamoDB Sake table name"
-  type        = string
-  default     = "SakeSensei-SakeMaster"
-}
-
-variable "dynamodb_brewery_table" {
-  description = "DynamoDB Brewery table name"
-  type        = string
-  default     = "SakeSensei-BreweryMaster"
-}
-
-variable "dynamodb_tasting_table" {
-  description = "DynamoDB Tasting table name"
-  type        = string
-  default     = "SakeSensei-TastingRecords"
-}
-
-variable "lambda_recommendation_url" {
-  description = "Lambda Recommendation function URL"
-  type        = string
-  default     = ""
-}
-
-variable "lambda_preference_url" {
-  description = "Lambda Preference function URL"
-  type        = string
-  default     = ""
-}
-
-variable "lambda_tasting_url" {
-  description = "Lambda Tasting function URL"
-  type        = string
-  default     = ""
-}
-
-variable "lambda_brewery_url" {
-  description = "Lambda Brewery function URL"
-  type        = string
-  default     = ""
-}
-
-variable "lambda_imagerecognition_url" {
-  description = "Lambda Image Recognition function URL"
-  type        = string
-  default     = ""
-}
-
 # ----------------------------------------------------------------------------
 # Tags
 # ----------------------------------------------------------------------------
