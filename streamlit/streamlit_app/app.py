@@ -175,7 +175,13 @@ def stream_bedrock_agent(message: str, session_id: str) -> Iterator[str]:
     if not config.AGENTCORE_RUNTIME_ARN:
         raise RuntimeError("AGENTCORE_RUNTIME_ARN is not configured in the environment.")
 
-    request_payload = json.dumps({"prompt": message})
+    actor_id = SessionManager.get_user_id() or SessionManager.get_user_email()
+
+    payload: dict[str, Any] = {"prompt": message}
+    if actor_id:
+        payload["actor_id"] = actor_id
+
+    request_payload = json.dumps(payload)
     response = _invoke_agent_runtime(session_id, request_payload)
 
     response_stream = response.get("response")
@@ -248,7 +254,13 @@ def invoke_bedrock_agent(message: str, session_id: str) -> str:
     if not config.AGENTCORE_RUNTIME_ARN:
         raise RuntimeError("AGENTCORE_RUNTIME_ARN is not configured in the environment.")
 
-    request_payload = json.dumps({"prompt": message})
+    actor_id = SessionManager.get_user_id() or SessionManager.get_user_email()
+
+    payload: dict[str, Any] = {"prompt": message}
+    if actor_id:
+        payload["actor_id"] = actor_id
+
+    request_payload = json.dumps(payload)
     response = _invoke_agent_runtime(session_id, request_payload)
     response_stream = response.get("response")
     if response_stream is None:
