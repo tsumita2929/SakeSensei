@@ -10,4 +10,5 @@ dependencies = [
     "bedrock-agentcore-starter-toolkit",
     "playwright",
     "python-dotenv",
+    "ruff"
 ]

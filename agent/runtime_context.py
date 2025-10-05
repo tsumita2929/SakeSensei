@@ -1,6 +1,5 @@
 from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -9,9 +8,11 @@ class RuntimeInvocationContext:
     session_id: str
 
 
-_DEFAULT_CONTEXT = RuntimeInvocationContext(actor_id="default_user", session_id="sake_session_default_user")
+_DEFAULT_CONTEXT = RuntimeInvocationContext(
+    actor_id="default_user", session_id="sake_session_default_user"
+)
 
-_current_context: ContextVar[Optional[RuntimeInvocationContext]] = ContextVar(
+_current_context: ContextVar[RuntimeInvocationContext | None] = ContextVar(
     "bedrock_agentcore_runtime_context",
     default=None,
 )

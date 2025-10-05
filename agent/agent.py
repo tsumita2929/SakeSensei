@@ -1,18 +1,20 @@
 import os
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from strands import Agent
 from strands.models import BedrockModel
 
 try:  # pragma: no cover - exercised in integration tests
+    from bedrock_agentcore.memory.constants import ConversationalMessage, MessageRole
+    from bedrock_agentcore.memory.session import MemorySession, MemorySessionManager
     from bedrock_agentcore.runtime import BedrockAgentCoreApp
     from bedrock_agentcore.runtime.context import BedrockAgentCoreContext
     from bedrock_agentcore.runtime.models import CUSTOM_HEADER_PREFIX
-    from bedrock_agentcore.memory.constants import ConversationalMessage, MessageRole
-    from bedrock_agentcore.memory.session import MemorySession, MemorySessionManager
 except (ModuleNotFoundError, ImportError):  # pragma: no cover - lightweight fallback for unit tests
+
     class BedrockAgentCoreApp:  # type: ignore[misc]
         def entrypoint(self, func):
             return func
@@ -50,6 +52,7 @@ except (ModuleNotFoundError, ImportError):  # pragma: no cover - lightweight fal
         def create_memory_session(self, *args, **kwargs):
             return MemorySession()
 
+
 try:  # pragma: no cover - integration helpers
     from bedrock_agentcore.memory.integrations.strands.config import (
         AgentCoreMemoryConfig,
@@ -59,12 +62,13 @@ try:  # pragma: no cover - integration helpers
         AgentCoreMemorySessionManager,
     )
 except (ModuleNotFoundError, ImportError):  # pragma: no cover - fallback for unit tests
+
     @dataclass
     class AgentCoreMemoryConfig:  # type: ignore[misc]
         memory_id: str
         actor_id: str
         session_id: str
-        retrieval_config: Dict[str, Any]
+        retrieval_config: dict[str, Any]
 
     @dataclass
     class RetrievalConfig:  # type: ignore[misc]
@@ -74,8 +78,10 @@ except (ModuleNotFoundError, ImportError):  # pragma: no cover - fallback for un
     class AgentCoreMemorySessionManager:  # type: ignore[misc]
         def __init__(self, *_args, **_kwargs):
             pass
-from sake_tools import ALL_TOOLS
+
+
 from runtime_context import clear_runtime_context, set_runtime_context
+from sake_tools import ALL_TOOLS
 
 # Enable .env usage for local smoke-testing. AgentCore runtime injects env vars.
 load_dotenv()
@@ -195,15 +201,17 @@ def _build_memory_config(memory_id: str, actor_id: str, session_id: str) -> Agen
     )
 
 
-def _create_session_manager(memory_id: str, actor_id: str, session_id: str) -> AgentCoreMemorySessionManager:
+def _create_session_manager(
+    memory_id: str, actor_id: str, session_id: str
+) -> AgentCoreMemorySessionManager:
     memory_config = _build_memory_config(memory_id, actor_id, session_id)
     return AgentCoreMemorySessionManager(memory_config, REGION)
 
 
 def create_agent(
     session_manager: AgentCoreMemorySessionManager,
-    system_prompt: Optional[str] = None,
-    model_id: Optional[str] = None,
+    system_prompt: str | None = None,
+    model_id: str | None = None,
 ) -> Agent:
     """Create a configured Strands agent for the Bedrock AgentCore runtime."""
 
@@ -221,7 +229,7 @@ def create_agent(
     )
 
 
-def _resolve_actor_id(context: Any, payload: Dict[str, Any]) -> str:
+def _resolve_actor_id(context: Any, payload: dict[str, Any]) -> str:
     """Resolve actor_id from runtime headers with payload fallback."""
 
     header_sources = (
@@ -240,7 +248,7 @@ def _resolve_actor_id(context: Any, payload: Dict[str, Any]) -> str:
     return actor_id or "default_user"
 
 
-def _resolve_session_id(context: Any, actor_id: str, payload: Dict[str, Any]) -> str:
+def _resolve_session_id(context: Any, actor_id: str, payload: dict[str, Any]) -> str:
     session_id = getattr(context, "session_id", None)
     if not session_id:
         session_id = payload.get("session_id") or payload.get("sessionId")
@@ -248,7 +256,7 @@ def _resolve_session_id(context: Any, actor_id: str, payload: Dict[str, Any]) ->
     return session_id or f"sake_session_{actor_id}"
 
 
-def _resolve_memory_id(context: Any) -> Optional[str]:
+def _resolve_memory_id(context: Any) -> str | None:
     """Resolve the Memory ID from env or runtime metadata."""
 
     if MEMORY_ID:
@@ -289,8 +297,8 @@ def save_conversation_to_memory(
     memory_id: str,
     actor_id: str,
     session_id: str,
-    user_message: Optional[str],
-    assistant_message: Optional[str],
+    user_message: str | None,
+    assistant_message: str | None,
 ) -> None:
     """Persist a user/assistant exchange, keeping turns isolated per role."""
 
@@ -313,13 +321,13 @@ def load_conversation_history(
     session_id: str,
     *,
     max_results: int = 20,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Fetch recent conversation turns as a flattened message list."""
 
     session = get_memory_session(memory_id, actor_id, session_id)
     turns = session.get_last_k_turns(k=max_results)
 
-    history: List[Dict[str, Any]] = []
+    history: list[dict[str, Any]] = []
     for turn in turns:
         if isinstance(turn, list):
             history.extend(turn)
@@ -329,7 +337,7 @@ def load_conversation_history(
     return history
 
 
-def _extract_prompt(payload: Dict[str, Any]) -> Optional[str]:
+def _extract_prompt(payload: dict[str, Any]) -> str | None:
     prompt = payload.get("prompt") or payload.get("input")
     if isinstance(prompt, str):
         return prompt.strip() or None
@@ -337,7 +345,7 @@ def _extract_prompt(payload: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def _format_response(agent_response: Any) -> Dict[str, Any]:
+def _format_response(agent_response: Any) -> dict[str, Any]:
     message_text = ""
 
     try:
@@ -354,7 +362,7 @@ def _format_response(agent_response: Any) -> Dict[str, Any]:
     except Exception as parse_error:  # pragma: no cover - defensive
         message_text = f"応答の解析に失敗しました: {parse_error}"
 
-    response: Dict[str, Any] = {"message": message_text or ""}
+    response: dict[str, Any] = {"message": message_text or ""}
 
     metrics = getattr(agent_response, "metrics", None)
     if metrics:
@@ -366,7 +374,7 @@ def _format_response(agent_response: Any) -> Dict[str, Any]:
     return response
 
 
-def _content_blocks_to_text(content: list[Dict[str, Any]]) -> str:
+def _content_blocks_to_text(content: list[dict[str, Any]]) -> str:
     """Concatenate plain-text blocks from structured model content."""
 
     text_parts: list[str] = []
@@ -396,9 +404,9 @@ def _stringify_unknown(value: Any) -> Any:
 
 
 def _format_stream_event(
-    event: Dict[str, Any],
-    stream_state: Dict[str, Any],
-) -> Dict[str, Any]:
+    event: dict[str, Any],
+    stream_state: dict[str, Any],
+) -> dict[str, Any]:
     """Normalize Strands streaming events into consumable JSON payloads."""
 
     if not isinstance(event, dict):
@@ -439,7 +447,7 @@ def _format_stream_event(
         return formatted
 
     if event.get("complete"):
-        payload: Dict[str, Any] = {"type": "complete"}
+        payload: dict[str, Any] = {"type": "complete"}
         if stream_state.get("message"):
             payload["message"] = stream_state["message"]
         return payload
@@ -490,9 +498,7 @@ def main() -> None:
                 print("Sake-Sensei > またお話ししましょう！")
                 break
 
-            memory_session.add_turns(
-                messages=[ConversationalMessage(user_input, MessageRole.USER)]
-            )
+            memory_session.add_turns(messages=[ConversationalMessage(user_input, MessageRole.USER)])
 
             agent_result = agent_instance(user_input)
             formatted = _format_response(agent_result)
@@ -500,15 +506,13 @@ def main() -> None:
 
             print(f"Sake-Sensei > {reply}")
 
-            memory_session.add_turns(
-                messages=[ConversationalMessage(reply, MessageRole.ASSISTANT)]
-            )
+            memory_session.add_turns(messages=[ConversationalMessage(reply, MessageRole.ASSISTANT)])
     finally:
         clear_runtime_context()
 
 
 @app.entrypoint
-async def invoke(payload: Dict[str, Any], context: Any) -> AsyncIterator[Dict[str, Any]]:
+async def invoke(payload: dict[str, Any], context: Any) -> AsyncIterator[dict[str, Any]]:
     prompt = _extract_prompt(payload)
     if not prompt:
         yield {"type": "error", "error": "A non-empty 'prompt' field is required."}
@@ -524,7 +528,7 @@ async def invoke(payload: Dict[str, Any], context: Any) -> AsyncIterator[Dict[st
 
     session_manager = _create_session_manager(memory_id, actor_id, session_id)
     agent = create_agent(session_manager=session_manager)
-    stream_state: Dict[str, Any] = {"message": ""}
+    stream_state: dict[str, Any] = {"message": ""}
 
     set_runtime_context(actor_id=actor_id, session_id=session_id)
 
