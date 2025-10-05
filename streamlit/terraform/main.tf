@@ -32,6 +32,11 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
+# CloudFront Managed Prefix List for origin-facing IPs
+data "aws_ec2_managed_prefix_list" "cloudfront" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
+}
+
 # ============================================================================
 # Cognito User Pool
 # ============================================================================
@@ -306,19 +311,19 @@ resource "aws_security_group" "alb" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description = "HTTP from Internet"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "HTTP from CloudFront"
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
   }
 
   egress {
-    description = "Allow all outbound"
+    description = "Allow traffic to ECS tasks"
     from_port   = 8501
     to_port     = 8501
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
   }
 
   tags = {
@@ -405,8 +410,30 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
+    type = "fixed-response"
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Access Denied"
+      status_code  = "403"
+    }
+  }
+}
+
+# ALB Listener Rule - Validate CloudFront custom header
+resource "aws_lb_listener_rule" "cloudfront_header_validation" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 100
+
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app.arn
+  }
+
+  condition {
+    http_header {
+      http_header_name = "X-Custom-Header"
+      values           = [random_password.cloudfront_secret.result]
+    }
   }
 }
 
@@ -519,7 +546,7 @@ resource "aws_iam_role_policy" "ecs_task_app_permissions" {
       {
         Effect = "Allow"
         Action = [
-          "cognito-idp:*",
+          "cognito-idp:*"
         ]
         Resource = [
           "arn:aws:cognito-idp:${var.aws_region}:${var.aws_account_id}:userpool/*"

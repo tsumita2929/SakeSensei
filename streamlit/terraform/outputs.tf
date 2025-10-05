@@ -77,3 +77,26 @@ output "ecs_task_role_arn" {
   description = "ARN of the ECS task role"
   value       = aws_iam_role.ecs_task.arn
 }
+
+# ----------------------------------------------------------------------------
+# CloudFront Outputs
+# ----------------------------------------------------------------------------
+output "cloudfront_distribution_id" {
+  description = "CloudFront Distribution ID"
+  value       = aws_cloudfront_distribution.main.id
+}
+
+output "cloudfront_domain_name" {
+  description = "CloudFront Distribution Domain Name"
+  value       = aws_cloudfront_distribution.main.domain_name
+}
+
+output "cloudfront_url" {
+  description = "CloudFront URL to access the application"
+  value       = "https://${aws_cloudfront_distribution.main.domain_name}"
+}
+
+output "cloudfront_custom_header_ssm" {
+  description = "SSM Parameter name for CloudFront custom header secret"
+  value       = aws_ssm_parameter.cloudfront_secret.name
+}
