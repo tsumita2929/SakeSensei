@@ -131,10 +131,7 @@ def _parse_sse_event(raw_event: str) -> Any | None:
         if event_line.startswith("data:"):
             data_lines.append(event_line[5:].lstrip())
 
-    if data_lines:
-        data_str = "".join(data_lines).strip()
-    else:
-        data_str = raw_event.strip()
+    data_str = "".join(data_lines).strip() if data_lines else raw_event.strip()
 
     if not data_str:
         return None
@@ -278,6 +275,7 @@ def invoke_bedrock_agent(message: str, session_id: str) -> str:
         return str(raw_response)
 
     return _extract_text_from_agent_response(payload)
+
 
 # Configure page
 st.set_page_config(
@@ -596,15 +594,13 @@ def render_agent_chat():
 
         except (BotoCoreError, ClientError, RuntimeError) as error:
             error_msg = f"エラーが発生しました: {str(error)}"
-            with chat_container:
-                with st.chat_message("assistant"):
-                    st.markdown(error_msg)
+            with chat_container, st.chat_message("assistant"):
+                st.markdown(error_msg)
             SessionManager.add_chat_message("assistant", error_msg)
         except Exception as error:  # noqa: BLE001
             error_msg = f"予期しないエラー: {str(error)}"
-            with chat_container:
-                with st.chat_message("assistant"):
-                    st.markdown(error_msg)
+            with chat_container, st.chat_message("assistant"):
+                st.markdown(error_msg)
             SessionManager.add_chat_message("assistant", error_msg)
 
         # Rerun to display new messages
@@ -692,6 +688,7 @@ def show_main_app():
 
     # AI Chat Section
     show_ai_chat_section()
+
 
 if __name__ == "__main__":
     main()

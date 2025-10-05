@@ -6,12 +6,8 @@ directly (fallback when Gateway is not configured).
 IMPORTANT: Per CLAUDE.md, all AI services should use AgentCore.
 """
 
-import contextlib
-import json
 from typing import Any
 
-import boto3
-import requests
 from utils.config import config
 from utils.preference_converter import convert_to_backend_format
 from utils.session import SessionManager

@@ -7,7 +7,7 @@ HTTP client for invoking AgentCore deployed agents.
 import json
 import os
 import uuid
-from typing import AsyncGenerator, Dict, Optional
+from collections.abc import AsyncGenerator
 
 import httpx
 
@@ -17,8 +17,8 @@ class AgentCoreClient:
 
     def __init__(
         self,
-        runtime_url: Optional[str] = None,
-        id_token: Optional[str] = None,
+        runtime_url: str | None = None,
+        id_token: str | None = None,
         timeout: float = 60.0,
     ):
         """
@@ -39,7 +39,7 @@ class AgentCoreClient:
         self.id_token = id_token
         self.timeout = timeout
 
-    def _get_headers(self, session_id: Optional[str] = None) -> Dict[str, str]:
+    def _get_headers(self, session_id: str | None = None) -> dict[str, str]:
         """
         Build request headers for AgentCore.
 
@@ -67,9 +67,9 @@ class AgentCoreClient:
     async def invoke(
         self,
         message: str,
-        session_id: Optional[str] = None,
-        additional_context: Optional[Dict] = None,
-    ) -> Dict:
+        session_id: str | None = None,
+        additional_context: dict | None = None,
+    ) -> dict:
         """
         Invoke agent with a message (non-streaming).
 
@@ -102,9 +102,9 @@ class AgentCoreClient:
     async def invoke_stream(
         self,
         message: str,
-        session_id: Optional[str] = None,
-        additional_context: Optional[Dict] = None,
-    ) -> AsyncGenerator[Dict, None]:
+        session_id: str | None = None,
+        additional_context: dict | None = None,
+    ) -> AsyncGenerator[dict]:
         """
         Invoke agent with streaming response.
 
@@ -125,27 +125,26 @@ class AgentCoreClient:
         if additional_context:
             payload.update(additional_context)
 
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            async with client.stream(
-                "POST",
-                f"{self.runtime_url}/invocations",
-                headers=headers,
-                json=payload,
-            ) as response:
-                response.raise_for_status()
+        async with httpx.AsyncClient(timeout=self.timeout) as client, client.stream(
+            "POST",
+            f"{self.runtime_url}/invocations",
+            headers=headers,
+            json=payload,
+        ) as response:
+            response.raise_for_status()
 
-                # Process Server-Sent Events (SSE)
-                async for line in response.aiter_lines():
-                    if line.startswith("data: "):
-                        data_str = line[6:]  # Remove "data: " prefix
-                        try:
-                            data = json.loads(data_str)
-                            yield data
-                        except json.JSONDecodeError:
-                            # Skip malformed JSON
-                            continue
+            # Process Server-Sent Events (SSE)
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    data_str = line[6:]  # Remove "data: " prefix
+                    try:
+                        data = json.loads(data_str)
+                        yield data
+                    except json.JSONDecodeError:
+                        # Skip malformed JSON
+                        continue
 
-    async def check_health(self) -> Dict:
+    async def check_health(self) -> dict:
         """
         Check agent runtime health status.
 
