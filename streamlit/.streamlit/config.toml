@@ -1,0 +1,51 @@
+# Sake Sensei - Streamlit Configuration
+# Professional, modern UI theme optimized for Japanese sake recommendations
+
+[theme]
+# Primary color - Sake blue/indigo
+primaryColor = "#4A90E2"
+
+# Background color - Clean white
+backgroundColor = "#FFFFFF"
+
+# Secondary background - Subtle gray
+secondaryBackgroundColor = "#F5F7FA"
+
+# Text color - Dark slate
+textColor = "#2C3E50"
+
+# Font - Modern sans-serif
+font = "sans serif"
+
+[server]
+# Server configuration
+headless = true
+port = 8501
+enableCORS = true
+enableXsrfProtection = true
+maxUploadSize = 10
+
+[browser]
+# Browser settings
+gatherUsageStats = false
+serverAddress = "localhost"
+serverPort = 8501
+
+[client]
+# Client-side settings
+showErrorDetails = false
+toolbarMode = "minimal"
+
+[runner]
+# Runner settings
+magicEnabled = true
+fastReruns = true
+
+[logger]
+# Logging level
+level = "info"
+
+[ui]
+# UI settings
+hideTopBar = false
+hideSidebarNav = false

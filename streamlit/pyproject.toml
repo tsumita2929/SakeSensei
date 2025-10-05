@@ -1,0 +1,190 @@
+[project]
+name = "sake-sensei"
+version = "0.1.0"
+description = "AI-powered sake recommendation system for beginners"
+authors = [
+    {name = "Sake Sensei Team", email = "team@sakesensei.example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    # Web Framework
+    "streamlit>=1.39.0",
+    # AWS SDK
+    "boto3>=1.35.0",
+    "botocore>=1.35.0",
+    # Data Validation
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    # HTTP Client
+    "httpx>=0.27.0",
+    # Environment Variables
+    "python-dotenv>=1.0.0",
+    # Date/Time
+    "python-dateutil>=2.9.0",
+    # JSON/Data Processing
+    "orjson>=3.10.0",
+    "email-validator>=2.0.0",
+    "pyjwt[crypto]>=2.8.0",
+    "aws-cdk-lib>=2.218.0",
+    "constructs>=10.4.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=8.3.0",
+    "pytest-cov>=5.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.14.0",
+    "moto>=5.0.0",
+
+    # Linting & Formatting
+    "ruff>=0.6.0",
+
+    # Type Checking
+    "mypy>=1.11.0",
+    "boto3-stubs[essential]>=1.35.0",
+
+    # Security
+    "bandit>=1.7.0",
+    "safety>=3.2.0",
+
+    # AWS CDK
+    "aws-cdk-lib>=2.160.0",
+    "constructs>=10.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/sake-sensei"
+Documentation = "https://github.com/yourusername/sake-sensei#readme"
+Repository = "https://github.com/yourusername/sake-sensei"
+Issues = "https://github.com/yourusername/sake-sensei/issues"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "W191",  # indentation contains tabs
+    "B904",  # Allow raising exceptions without from e
+    "SIM116",  # if-else-block-instead-of-dict-lookup (keep for readability)
+    "UP047",  # non-pep695-generic-function (Python 3.12 compatibility)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["ARG", "S101"]
+"backend/lambdas/*/handler.py" = ["ARG001"]  # Lambda context is required but often unused
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "normal"
+ignore_missing_imports = true
+strict_equality = true
+strict_concatenate = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".venv"]
+tests = ["B201", "B301", "B318", "B502", "B601"]
+skips = ["B101", "B601"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=streamlit_app",
+    "--cov=backend",
+    "--cov=agent",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests",
+    "smoke: Smoke tests",
+    "slow: Slow running tests",
+]
+
+[tool.coverage.run]
+source = ["streamlit_app", "backend", "agent"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "moto>=5.1.13",
+    "mypy>=1.18.2",
+    "playwright>=1.55.0",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=7.0.0",
+    "pytest-mock>=3.15.1",
+    "pytest-playwright>=0.7.1",
+    "pytest-timeout>=2.4.0",
+    "ruff>=0.13.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["streamlit_app", "backend", "agent"]

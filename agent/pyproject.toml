@@ -1,0 +1,13 @@
+[project]
+name = "sake-recommend"
+version = "0.1.0"
+description = "Minimal Strands Agent with Bedrock Sonnet 4.5"
+requires-python = ">=3.13"
+dependencies = [
+    "strands-agents",
+    "boto3",
+    "bedrock-agentcore",
+    "bedrock-agentcore-starter-toolkit",
+    "playwright",
+    "python-dotenv",
+]

@@ -1,0 +1,6 @@
+# Trivy Configuration for Sake Sensei
+
+# Severity levels to report
+severity:
+  - HIGH
+  - CRITICAL
