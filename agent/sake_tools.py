@@ -13,6 +13,7 @@ Sake Recommendation Tools
 
 import os
 import re
+from urllib.parse import quote_plus
 from typing import List, Optional, Tuple
 
 import boto3
@@ -189,10 +190,17 @@ def recommend_sake(
     try:
         # まず、Memoryからユーザーの過去の好みを検索
         memory_results = search_user_preferences("日本酒の好み 推薦")
+        memory_error = (
+            memory_results.startswith("エラー:")
+            or memory_results.startswith("Memory検索エラー")
+        )
 
         # 好みの情報を統合
         query_text = ""
-        if "過去の好み情報は見つかりませんでした" not in memory_results:
+        if (
+            not memory_error
+            and "過去の好み情報は見つかりませんでした" not in memory_results
+        ):
             query_text += f"過去の好み: {memory_results}\n"
 
         if preferences:
@@ -231,9 +239,11 @@ def recommend_sake(
         recommendation = "\n---\n".join(results)
 
         # 過去の好み情報も含める（エラーメッセージや空の結果は除外）
-        if ("過去の好み情報は見つかりませんでした" not in memory_results and
-            "エラー" not in memory_results and
-            memory_results.strip()):
+        if (
+            not memory_error
+            and "過去の好み情報は見つかりませんでした" not in memory_results
+            and memory_results.strip()
+        ):
             recommendation = f"【過去の好み情報】\n{memory_results}\n\n【推薦結果】\n{recommendation}"
 
         return recommendation
@@ -470,6 +480,8 @@ def fetch_sake_price(sake_name: str, screenshot_path: Optional[str] = None) -> s
                 chromium = playwright.chromium
                 browser = chromium.connect_over_cdp(ws_url, headers=headers)
 
+                page = None
+
                 try:
                     # 新しいコンテキストを作成する場合のみ設定を適用
                     if not browser.contexts:
@@ -503,7 +515,8 @@ def fetch_sake_price(sake_name: str, screenshot_path: Optional[str] = None) -> s
 
                     # Amazon.co.jpで検索（言語パラメータを明示）
                     search_query = f"{sake_name} 日本酒"
-                    amazon_url = f"https://www.amazon.co.jp/s?k={search_query}&language=ja_JP"
+                    encoded_query = quote_plus(search_query)
+                    amazon_url = f"https://www.amazon.co.jp/s?k={encoded_query}&language=ja_JP"
 
                     page.goto(amazon_url, wait_until="load", timeout=30000)
                     page.wait_for_timeout(3000)
@@ -597,7 +610,7 @@ def fetch_sake_price(sake_name: str, screenshot_path: Optional[str] = None) -> s
                     return "\n".join(formatted_results)
 
                 finally:
-                    if not page.is_closed():
+                    if page and not page.is_closed():
                         page.close()
                     browser.close()
 
