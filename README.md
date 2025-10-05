@@ -38,6 +38,17 @@ Sake-Sensei is an intelligent recommendation platform that helps users discover 
 ## 🏗️ Architecture
 
 ```
+                           ┌─────────────────┐
+                           │   CloudFront    │
+                           │     ( CDN )     │
+                           └────────┬────────┘
+                                    │ HTTPS
+                                    ↓
+┌─────────────────────────────────────────────────────────────┐
+│              Application Load Balancer                      │
+└───────────────────┬─────────────────────────────────────────┘
+                    │
+                    ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                    Streamlit Web App                        │
 │                  (ECS Fargate + Cognito)                    │
@@ -61,7 +72,7 @@ Sake-Sensei is an intelligent recommendation platform that helps users discover 
 
 - **Agent** (`agent/`) - Python-based AI agent using Strands framework and AWS Bedrock
 - **Streamlit** (`streamlit/`) - User-facing web application with chat interface
-- **Infrastructure** (`streamlit/terraform/`) - IaC for ECS, VPC, Cognito, and ALB
+- **Infrastructure** (`streamlit/terraform/`) - IaC for CloudFront, ECS, VPC, Cognito, and ALB
 
 ---
 
@@ -174,6 +185,7 @@ See [`streamlit/terraform/README.md`](streamlit/terraform/README.md) for infrast
 - **Python 3.13** - Application runtime
 
 ### Infrastructure
+- **Amazon CloudFront** - CDN for global content delivery and caching
 - **AWS ECS Fargate** - Containerized application hosting
 - **Application Load Balancer** - HTTP traffic routing
 - **Amazon VPC** - Network isolation
@@ -302,6 +314,7 @@ Sake-Sensei/
 
 | Service | Cost |
 |---------|------|
+| CloudFront (10GB transfer + requests) | $2 |
 | ECS Fargate (1 vCPU, 2GB) | $30 |
 | Application Load Balancer | $20 |
 | NAT Gateway × 2 | $70 |
@@ -309,18 +322,20 @@ Sake-Sensei/
 | CloudWatch Logs | $5 |
 | Bedrock AgentCore | Variable (pay-per-use) |
 | Cognito (< 50k MAU) | Free |
-| **Estimated Total** | **~$135/month** |
+| **Estimated Total** | **~$142/month** |
 
 **Cost optimization tips:**
 - Reduce NAT Gateways to 1 for dev environments ($35/month savings)
 - Stop ECS tasks when not in use
 - Use `terraform destroy` for temporary deployments
+- CloudFront free tier includes 1TB data transfer out (first 12 months)
 - AgentCore Browser is free until September 2025
 
 ---
 
 ## 🔒 Security
 
+- ✅ CloudFront with HTTPS-only and custom SSL/TLS certificates
 - ✅ AWS Cognito authentication with email verification
 - ✅ MFA support (optional)
 - ✅ Strong password policy (12+ chars, mixed case, numbers, symbols)
