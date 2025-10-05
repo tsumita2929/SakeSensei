@@ -14,8 +14,7 @@ if [ -z "$AWS_REGION" ]; then
     AWS_REGION="us-west-2"
 fi
 
-AGENTCORE_MEMORY_ID=sake_sensei_agent_mem-jaGX86ECBZ
-MEMORY_ID=$AGENTCORE_MEMORY_ID
+MEMORY_ID=sake_sensei_agent_mem-jaGX86ECBZ
 REGION=$AWS_REGION
 
 echo -e "${YELLOW}┌──────────────────────────────────────────┐${NC}"

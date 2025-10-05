@@ -50,8 +50,6 @@ class Config:
     AGENTCORE_RUNTIME_ARN = os.getenv("AGENTCORE_RUNTIME_ARN", "")
     AGENTCORE_AGENT_ID = os.getenv("AGENTCORE_AGENT_ID", "")
     AGENTCORE_AGENT_ALIAS_ID = os.getenv("AGENTCORE_AGENT_ALIAS_ID", "")
-    AGENTCORE_MEMORY_ID = os.getenv("AGENTCORE_MEMORY_ID")
-    AGENTCORE_MEMORY_TTL = int(os.getenv("AGENTCORE_MEMORY_TTL", "86400"))
 
     # Lambda Function ARNs
     LAMBDA_RECOMMENDATION_ARN = os.getenv("LAMBDA_RECOMMENDATION_ARN")
@@ -145,7 +143,6 @@ class Config:
             "AWS Region": cls.AWS_REGION,
             "Cognito User Pool": cls.COGNITO_USER_POOL_ID,
             "AgentCore Gateway": cls.AGENTCORE_GATEWAY_ID,
-            "AgentCore Memory": cls.AGENTCORE_MEMORY_ID,
             "Environment": cls.APP_ENV,
             "Debug Mode": cls.APP_DEBUG,
         }
